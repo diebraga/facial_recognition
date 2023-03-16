@@ -1,14 +1,12 @@
-import sys
 from fastapi import FastAPI, File, UploadFile
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
 import shutil
 import os
 import cv2
 import face_recognition
 import numpy as np
-import math
 from fastapi.middleware.cors import CORSMiddleware
+from utils.face_confidence.face_confidence import face_confidence
+from utils.encode_faces.encode_faces import encode_faces
 
 app = FastAPI()
 
@@ -19,32 +17,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-def face_confidence(face_distance, face_match_threshold=0.6):
-    range = (1.0 - face_match_threshold)
-    linear_val = (1.0 - face_distance) / (range * 2.0)
-
-    if face_distance > face_match_threshold:
-        return str(round(linear_val * 100, 2)) + '%'
-    else:
-        value = (linear_val + ((1.0 - linear_val) * math.pow((linear_val - 0.5) * 2, 0.2))) * 100
-        return str(round(value, 2)) + '%'
-
-
-def encode_faces():
-    known_face_encodings = []
-    known_face_names = []
-
-    for image in os.listdir('faces'):
-        if image.startswith('.'):
-            continue
-        face_image = face_recognition.load_image_file(f"faces/{image}")
-        face_encoding = face_recognition.face_encodings(face_image)[0]
-
-        known_face_encodings.append(face_encoding)
-        known_face_names.append(image)
-
-    return known_face_encodings, known_face_names
 
 @app.post("/face_recognition")
 async def face_recognition_api(image: UploadFile = File(...)):
