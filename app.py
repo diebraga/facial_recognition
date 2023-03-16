@@ -12,7 +12,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://super-croquembouche-3f9cf3.netlify.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -20,7 +20,7 @@ app.add_middleware(
 
 @app.post("/face_recognition")
 async def face_recognition_api(image: UploadFile = File(...)):
-    known_face_encodings, known_face_names = encode_faces()
+    known_face_encodings, known_face_names = await encode_faces()
 
     # Save the uploaded image to disk
     filename = image.filename
@@ -61,10 +61,10 @@ async def face_recognition_api(image: UploadFile = File(...)):
         results.append({
             "name": name,
             "confidence": confidence,
-            "top": top,
-            "right": right,
-            "bottom": bottom,
-            "left": left
+            # "top": top,
+            # "right": right,
+            # "bottom": bottom,
+            # "left": left
         })
 
     # Delete the uploaded image file
