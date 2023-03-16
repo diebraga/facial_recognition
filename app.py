@@ -50,12 +50,13 @@ def encode_faces():
 async def face_recognition_api(image: UploadFile = File(...)):
     known_face_encodings, known_face_names = encode_faces()
 
-    # Save the uploaded image temporarily
-    with open("temp_image.jpg", "wb") as buffer:
+    # Save the uploaded image to disk
+    filename = image.filename
+    with open(filename, "wb") as buffer:
         shutil.copyfileobj(image.file, buffer)
 
     # Load the image
-    frame = cv2.imread("temp_image.jpg")
+    frame = cv2.imread(filename)
 
     small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
     rgb_small_frame = small_frame[:, :, ::-1]
@@ -76,7 +77,7 @@ async def face_recognition_api(image: UploadFile = File(...)):
             name = known_face_names[best_match_index]
             confidence = face_confidence(face_distances[best_match_index])
 
-        face_names.append(f'{name} ({confidence})')
+        face_names.append(f'{name}')
 
     results = []
     for (top, right, bottom, left), name in zip(face_locations, face_names):
@@ -93,5 +94,8 @@ async def face_recognition_api(image: UploadFile = File(...)):
             "bottom": bottom,
             "left": left
         })
+
+    # Delete the uploaded image file
+    os.remove(filename)
 
     return {"results": results}

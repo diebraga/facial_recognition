@@ -1,6 +1,6 @@
 // App.tsx
 
-import { useRef, useState } from 'react';
+import { useRef, useState } from "react";
 
 type Result = {
   name: string;
@@ -25,7 +25,7 @@ function App() {
 
   const captureImage = async () => {
     if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d');
+      const context = canvasRef.current.getContext("2d");
       if (context) {
         const width = videoRef.current.videoWidth;
         const height = videoRef.current.videoHeight;
@@ -38,11 +38,12 @@ function App() {
         context.putImageData(imageData, 0, 0);
 
         return new Promise<Blob>((resolve) => {
-          canvasRef.current && canvasRef.current.toBlob((blob) => {
-            if (blob) {
-              resolve(blob);
-            }
-          }, 'image/jpeg');
+          canvasRef.current &&
+            canvasRef.current.toBlob((blob) => {
+              if (blob) {
+                resolve(blob);
+              }
+            }, "image/jpeg");
         });
       }
     }
@@ -54,10 +55,10 @@ function App() {
 
     if (imageBlob) {
       const formData = new FormData();
-      formData.append('image', imageBlob);
+      formData.append("image", imageBlob);
 
-      const response = await fetch('http://127.0.0.1:8000/face_recognition', {
-        method: 'POST',
+      const response = await fetch("http://127.0.0.1:8000/face_recognition", {
+        method: "POST",
         body: formData,
       });
 
@@ -65,17 +66,17 @@ function App() {
       setResults(data.results);
     }
   };
-
+  console.log(results);
   return (
     <div>
       <h1>Face Recognition</h1>
       <button onClick={startCamera}>Start Camera</button>
       <button onClick={submitImage}>Submit Image</button>
       <video ref={videoRef} autoPlay></video>
-      <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
+      <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
       <div>
         {results.map((result, index) => (
-          <p key={index}>{result.name}</p>
+          <p key={index}>{result.name.slice(0, result.name.lastIndexOf("."))}</p>
         ))}
       </div>
     </div>
