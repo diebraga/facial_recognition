@@ -1,6 +1,6 @@
 // App.tsx
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Result = {
   name: string;
@@ -15,6 +15,7 @@ function App() {
   const [results, setResults] = useState<Result[]>([]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isLoading, setIsLoading] = useState(false); // Nouvel état de chargement
 
   const startCamera = async () => {
     if (videoRef.current) {
@@ -22,6 +23,10 @@ function App() {
       videoRef.current.srcObject = stream;
     }
   };
+
+  useEffect(() => {
+    startCamera();
+  }, []);
 
   const captureImage = async () => {
     if (videoRef.current && canvasRef.current) {
@@ -50,7 +55,9 @@ function App() {
     return null;
   };
 
-  const submitImage = async () => {
+  const submitImage = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
     const imageBlob = await captureImage();
 
     if (imageBlob) {
@@ -64,22 +71,68 @@ function App() {
 
       const data = await response.json();
       setResults(data.results);
+      setIsLoading(false);
     }
   };
-  console.log(results);
+
+  const buttonStyles = (isLoading: boolean): React.CSSProperties => {
+    return {
+      display: "block",
+      width: "100%",
+      maxWidth: "300px",
+      padding: "12px 24px",
+      border: "none",
+      borderRadius: "8px",
+      fontSize: "16px",
+      fontWeight: "bold",
+      textAlign: "center",
+      textTransform: "uppercase",
+      backgroundColor: "#333",
+      color: "#fff",
+      cursor: !isLoading ? "pointer" : "progress",
+    };
+  };
   return (
-    <div>
+    <form
+      onSubmit={(e) => submitImage(e)}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        fontFamily: "sans-serif",
+        color: "white",
+        background: "#000",
+        minHeight: "100vh",
+      }}
+    >
       <h1>Face Recognition</h1>
-      <button onClick={startCamera}>Start Camera</button>
-      <button onClick={submitImage}>Submit Image</button>
+      <br />
       <video ref={videoRef} autoPlay></video>
       <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
-      <div>
-        {results.map((result, index) => (
-          <p key={index}>{result.name.slice(0, result.name.lastIndexOf("."))}</p>
-        ))}
+      <br />
+      <button type="submit" style={buttonStyles(false)}>
+        Submit Image
+      </button>
+      <br />
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {results.map((item) => {
+          const str = item.name;
+          const fileName = str.slice(0, str.lastIndexOf(".")); 
+          const words = fileName.split("_"); 
+          const capitalizedWords = words.map((word) => word.charAt(0).toUpperCase() + word.slice(1)); 
+          const name = capitalizedWords.join(" ");
+          
+          return (
+            <div>
+              <h1>Name: {name}</h1>
+              <br />
+              <h1>Confidence: {item.confidence}</h1>
+            </div>
+          );
+        })}
       </div>
-    </div>
+    </form>
   );
 }
 
